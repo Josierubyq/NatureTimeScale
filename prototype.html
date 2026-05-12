@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nature Negotiation Interface / 自然との交渉インターフェース</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --ink: #17231f;
+        --muted: #5d6964;
+        --line: #d7ddd9;
+        --paper: #fbfaf6;
+        --leaf: #2f7a55;
+        --moss: #86a34f;
+        --water: #4a8f9f;
+        --sun: #d69a3a;
+        --warning: #b8693d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(251, 250, 246, 0.94), rgba(232, 237, 229, 0.96)),
+          url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23aeb9b2' stroke-opacity='.24' stroke-width='1'%3E%3Cpath d='M16 42c28-22 44 18 72-4 20-16 35-10 50 8'/%3E%3Cpath d='M4 110c30 14 54-14 82 0 24 12 42 5 64-10'/%3E%3Cpath d='M58 12c-8 34 20 48 8 78-8 22-4 38 16 58'/%3E%3C/g%3E%3C/svg%3E");
+        color: var(--ink);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .page {
+        width: min(1320px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 18px 0 56px;
+      }
+
+      .app-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 14px;
+      }
+
+      .app-title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .app-title h1 {
+        font-size: clamp(1.6rem, 3vw, 2.5rem);
+        line-height: 1.05;
+      }
+
+      .hero {
+        min-height: auto;
+        display: grid;
+        grid-template-columns: minmax(260px, 0.62fr) minmax(420px, 1.38fr);
+        gap: 24px;
+        align-items: start;
+        padding: 18px 0 28px;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 14px;
+      }
+
+      .hero h1 {
+        font-size: clamp(1.8rem, 4vw, 3.2rem);
+        line-height: 1;
+      }
+
+      .hero .space-switcher {
+        display: none;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--leaf);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 760px;
+        font-size: clamp(2.8rem, 7vw, 6.4rem);
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 610px;
+        color: #384640;
+        font-size: 1.08rem;
+        line-height: 1.75;
+      }
+
+      .space-switcher {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .space-switcher button,
+      .choice {
+        min-height: 44px;
+        border: 1px solid #cbd4ce;
+        background: rgba(255, 255, 255, 0.72);
+        color: #26332e;
+        border-radius: 8px;
+        padding: 11px 15px;
+        cursor: pointer;
+        font-weight: 750;
+      }
+
+      .space-switcher button.active,
+      .choice.selected {
+        border-color: var(--leaf);
+        background: #e4efe6;
+        color: #1f5f40;
+      }
+
+      .chart-card,
+      .phone,
+      .compare-panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+        box-shadow: 0 18px 48px rgba(54, 68, 59, 0.13);
+      }
+
+      .chart-card {
+        border-radius: 8px;
+        padding: 24px;
+      }
+
+      .chart-head,
+      .row-between {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h2 {
+        margin-bottom: 8px;
+        font-size: 1.35rem;
+      }
+
+      .small {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      .now-pill {
+        border: 1px solid #cbd4ce;
+        border-radius: 8px;
+        padding: 9px 12px;
+        background: #f7f3e9;
+        color: #795522;
+        font-size: 0.86rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .line-chart {
+        width: 100%;
+        height: 310px;
+        margin-top: 24px;
+      }
+
+      .axis {
+        stroke: #bdc7c0;
+        stroke-width: 1;
+      }
+
+      .grid-line {
+        stroke: #e6ebe7;
+        stroke-width: 1;
+      }
+
+      .chart-line {
+        fill: none;
+        stroke: var(--series);
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        opacity: 0.34;
+      }
+
+      .chart-line.selected {
+        stroke-width: 7;
+        opacity: 1;
+      }
+
+      .chart-line.selected.animating {
+        stroke-dasharray: 900;
+        stroke-dashoffset: 900;
+        animation: drawLine 0.85s cubic-bezier(0.2, 0, 0, 1) forwards;
+      }
+
+      .chart-baseline {
+        fill: none;
+        stroke: #7d8983;
+        stroke-width: 3;
+        stroke-dasharray: 8 8;
+        stroke-linecap: round;
+        opacity: 0.55;
+      }
+
+      .chart-area {
+        fill: rgba(47, 122, 85, 0.1);
+      }
+
+      .chart-area.animating {
+        animation: areaPulse 0.85s ease forwards;
+      }
+
+      .chart-dot {
+        fill: #fbfaf6;
+        stroke: var(--series);
+        stroke-width: 4;
+      }
+
+      .active-dot {
+        fill: var(--sun);
+        stroke: #8d6425;
+      }
+
+      .changed-dot {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: dotPulse 0.85s ease both;
+      }
+
+      @keyframes drawLine {
+        from {
+          stroke-dashoffset: 900;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes dotPulse {
+        0% {
+          transform: scale(0.72);
+          opacity: 0.35;
+        }
+        55% {
+          transform: scale(1.45);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes areaPulse {
+        0% {
+          opacity: 0;
+        }
+        45% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .chart-label {
+        fill: #53615b;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #d7ddd9;
+        border-radius: 8px;
+        background: #fff;
+        padding: 8px 10px;
+        color: #3d4944;
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      .legend-line {
+        width: 24px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--series);
+      }
+
+      .chart-impact {
+        margin-top: 14px;
+        border: 1px solid #d8dfda;
+        border-left: 6px solid var(--leaf);
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: #fff;
+        color: #21342a;
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .timeline-note {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .time-chip {
+        border-top: 4px solid var(--leaf);
+        background: #f5f7f2;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .time-chip strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.92rem;
+      }
+
+      .prototype-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: start;
+        padding-top: 0;
+        margin-bottom: 28px;
+      }
+
+      .prototype-section > div:first-child {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .prototype-section > div:first-child .lead {
+        display: none;
+      }
+
+      .interaction-panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 18px 48px rgba(54, 68, 59, 0.13);
+        overflow: hidden;
+      }
+
+      .screen {
+        background: transparent;
+      }
+
+      .scene {
+        min-height: 170px;
+        padding: 24px;
+        color: white;
+        background:
+          linear-gradient(180deg, rgba(24, 34, 29, 0.16), rgba(24, 34, 29, 0.72)),
+          var(--scene);
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .scene h2 {
+        margin: 0;
+        max-width: 270px;
+        color: white;
+        font-size: 1.9rem;
+        line-height: 1.05;
+      }
+
+      .screen-body {
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .status-overview {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr) auto;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .interaction-grid {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.72fr) minmax(520px, 1.28fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .control-column,
+      .visual-column {
+        display: grid;
+        gap: 14px;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .info-card {
+        border: 1px solid #dbe0dc;
+        background: white;
+        border-radius: 8px;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .info-card span {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .info-card strong {
+        display: block;
+        margin-top: 3px;
+        font-size: 1rem;
+      }
+
+      .signal {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: #eef4ef;
+        color: var(--leaf);
+        font-weight: 900;
+      }
+
+      .live-weather {
+        border: 1px solid #dbe0dc;
+        border-radius: 8px;
+        background: #fff;
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+        min-width: 210px;
+      }
+
+      .weather-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .weather-head span,
+      .weather-source {
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .weather-head strong {
+        font-size: 0.92rem;
+      }
+
+      .weather-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .weather-metric {
+        border-radius: 8px;
+        background: #f5f7f2;
+        padding: 10px;
+      }
+
+      .weather-metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.74rem;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .weather-metric strong {
+        display: block;
+        margin-top: 3px;
+        font-size: 1.08rem;
+      }
+
+      .prompt {
+        border-left: 4px solid var(--leaf);
+        background: #edf4ee;
+        border-radius: 8px;
+        padding: 14px;
+        color: #24352d;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .control-panel {
+        border: 1px solid #d8dfda;
+        border-radius: 8px;
+        padding: 16px;
+        background: #fff;
+        display: grid;
+        gap: 16px;
+      }
+
+      .control-row {
+        display: grid;
+        gap: 9px;
+      }
+
+      .control-row label,
+      .control-title {
+        color: #37443f;
+        font-size: 0.84rem;
+        font-weight: 850;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .range-line {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: center;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--leaf);
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .segment {
+        min-height: 40px;
+        border: 1px solid #cbd4ce;
+        border-radius: 8px;
+        background: #f8faf7;
+        color: #303d38;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .segment.active {
+        border-color: var(--leaf);
+        background: #e4efe6;
+        color: #1f5f40;
+      }
+
+      .choices {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .choice {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        background: white;
+      }
+
+      .choice small {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .choice.selected {
+        box-shadow: inset 0 0 0 1px rgba(47, 122, 85, 0.28);
+      }
+
+      .choice.high-impact.selected {
+        border-color: var(--warning);
+        background: #fbebe2;
+        color: #7b3f24;
+      }
+
+      .feedback {
+        border: 1px solid #d8dfda;
+        border-radius: 8px;
+        padding: 14px;
+        background: #f6f1e5;
+        color: #4e3921;
+        line-height: 1.55;
+      }
+
+      .counter-offer {
+        border: 1px solid #e3cbb9;
+        border-left: 6px solid var(--warning);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fff7f1;
+        color: #56341f;
+        display: grid;
+        gap: 10px;
+      }
+
+      .counter-offer.hidden {
+        display: none;
+      }
+
+      .counter-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .counter-actions button {
+        border: 1px solid #d7b9a3;
+        border-radius: 8px;
+        background: #fff;
+        color: #56341f;
+        cursor: pointer;
+        font-weight: 800;
+        padding: 10px 12px;
+      }
+
+      .impact-panel {
+        border: 1px solid #d8dfda;
+        border-radius: 8px;
+        padding: 14px;
+        background: white;
+        display: grid;
+        gap: 12px;
+      }
+
+      .impact-panel h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .impact-chart {
+        width: 100%;
+        height: 340px;
+        border: 1px solid #e1e6e2;
+        border-radius: 8px;
+        background: #fbfcfa;
+      }
+
+      .impact-axis,
+      .impact-grid {
+        stroke: #d9e0db;
+        stroke-width: 1;
+      }
+
+      .impact-before {
+        fill: none;
+        stroke: #8c9691;
+        stroke-width: 3;
+        stroke-dasharray: 7 7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .impact-after {
+        fill: none;
+        stroke: var(--series);
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .impact-after.animating {
+        stroke-dasharray: 540;
+        stroke-dashoffset: 540;
+        animation: drawLine 0.85s cubic-bezier(0.2, 0, 0, 1) forwards;
+      }
+
+      .impact-point {
+        fill: #fff;
+        stroke: var(--series);
+        stroke-width: 4;
+      }
+
+      .impact-point.changed-dot {
+        animation-delay: 0.1s;
+      }
+
+      .impact-label {
+        fill: #5d6964;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .impact-summary {
+        border-radius: 8px;
+        padding: 12px;
+        background: #edf4ee;
+        color: #26392f;
+        font-size: 0.92rem;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .compare-panel {
+        border-radius: 8px;
+        padding: 24px;
+      }
+
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 16px;
+      }
+
+      .compare-card {
+        min-height: 300px;
+        border: 1px solid #d9dfdb;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .compare-image {
+        min-height: 180px;
+        background: var(--compare-bg);
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+
+      .person {
+        position: absolute;
+        left: 48%;
+        bottom: 30px;
+        width: 40px;
+        height: 64px;
+        transform: translateX(-50%);
+      }
+
+      .person::before {
+        content: "";
+        position: absolute;
+        left: 11px;
+        top: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #f0c59d;
+      }
+
+      .person::after {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 19px;
+        width: 26px;
+        height: 42px;
+        border-radius: 12px 12px 6px 6px;
+        background: #284f77;
+      }
+
+      .mini-phone {
+        position: absolute;
+        right: 18px;
+        bottom: 22px;
+        width: 68px;
+        height: 116px;
+        border-radius: 12px;
+        border: 5px solid #19201d;
+        background: #fbfaf6;
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+      }
+
+      .mini-phone::before,
+      .mini-phone::after {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        height: 8px;
+        border-radius: 4px;
+        background: #82a24f;
+      }
+
+      .mini-phone::before {
+        top: 20px;
+      }
+
+      .mini-phone::after {
+        top: 38px;
+        background: #d69a3a;
+      }
+
+      .compare-text {
+        padding: 16px;
+      }
+
+      .compare-text h3 {
+        margin-bottom: 8px;
+      }
+
+      .decision-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 0;
+        min-width: min(100%, 620px);
+      }
+
+      .decision {
+        border: 1px solid #d7ddd9;
+        border-radius: 8px;
+        padding: 13px;
+        background: #fff;
+      }
+
+      .decision strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .prototype-section,
+        .compare-grid,
+        .decision-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          min-height: auto;
+          padding-top: 20px;
+        }
+
+        .timeline-note {
+          grid-template-columns: 1fr;
+        }
+
+        .app-top,
+        .prototype-section > div:first-child {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .choices {
+          grid-template-columns: 1fr;
+        }
+
+        .segmented {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .interaction-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-overview {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page {
+          width: min(100% - 20px, 1180px);
+        }
+
+        .chart-card,
+        .compare-panel {
+          padding: 16px;
+        }
+
+        .screen {
+          min-height: 640px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="app-top">
+        <div class="app-title">
+          <p class="eyebrow">More-than-human interaction prototype / 人間以上の存在とのインタラクション原型</p>
+          <h1>Nature Negotiation Interface / 自然との交渉インターフェース</h1>
+        </div>
+        <div class="space-switcher" aria-label="Choose a natural space">
+          <button class="active" data-space="grass">Grassland / 草地</button>
+          <button data-space="tree">Under Tree / 木陰</button>
+          <button data-space="water">Waterside / 水辺</button>
+        </div>
+      </header>
+
+      <section class="prototype-section">
+        <div>
+          <div>
+            <p class="eyebrow">Live interaction / ライブ操作</p>
+            <h2>Choose on the left, watch impact change on the right / 左で選び、右で影響を見る</h2>
+            <p class="lead">
+              Select a natural space, then choose an action. The graph changes immediately to show how that choice affects ecological pressure. / 自然空間を選び、行動を選択すると、生態的な圧力の変化がすぐにグラフに反映されます.
+            </p>
+          </div>
+          <div class="decision-strip">
+            <div class="decision">
+              <strong>Where / 場所</strong>
+              <p class="small" id="decisionWhere">Grassland / 草地 near Library</p>
+            </div>
+            <div class="decision">
+              <strong>Sees / 見る情報</strong>
+              <p class="small">Plant, bird, and soil conditions / 植物・鳥・土壌の状態</p>
+            </div>
+            <div class="decision">
+              <strong>Chooses / 選択</strong>
+              <p class="small" id="decisionChoice">Stay for a shorter time</p>
+            </div>
+          </div>
+        </div>
+
+        <article class="interaction-panel" aria-label="Interaction prototype">
+          <div class="screen">
+            <div class="scene" id="scene">
+              <div class="status-bar">
+                <span>14:00</span>
+                <span>Campus Nature / キャンパス自然</span>
+              </div>
+              <h2 id="spaceTitle">Entering Grassland / 草地</h2>
+            </div>
+            <div class="screen-body">
+              <div class="status-overview">
+                <div>
+                  <p class="eyebrow">Non-human info / 非人間の情報</p>
+                  <h2 id="spaceName">Grassland / 草地</h2>
+                </div>
+                <div class="info-grid" id="infoGrid"></div>
+                <div class="live-weather" aria-live="polite" aria-label="Live weather">
+                  <div class="weather-head">
+                    <span>Weather / 天気</span>
+                    <strong id="spaceSensitivity">Sensitive</strong>
+                  </div>
+                  <div class="weather-metrics">
+                    <div class="weather-metric">
+                      <span>Temp / 気温</span>
+                      <strong id="weatherTemp">--</strong>
+                    </div>
+                    <div class="weather-metric">
+                      <span>Humidity / 湿度</span>
+                      <strong id="weatherHumidity">--</strong>
+                    </div>
+                  </div>
+                  <div class="weather-source" id="weatherSource">Loading live data / 取得中</div>
+                </div>
+              </div>
+
+              <div class="prompt">
+                <span id="weatherPrompt">This is a shared space. Please consider your impact. / ここは共有された空間です。あなたの影響を考えてください。</span>
+              </div>
+
+              <div class="interaction-grid">
+                <div class="control-column">
+                  <div class="control-panel" aria-label="Negotiation settings">
+                    <div class="control-row">
+                      <label for="timeSlider">Time / 時間</label>
+                      <div class="range-line">
+                        <input id="timeSlider" type="range" min="0" max="5" step="1" value="3" />
+                        <span class="now-pill" id="timeValue">14:00</span>
+                      </div>
+                    </div>
+                    <div class="control-row">
+                      <div class="control-title">Stay duration / 滞在時間</div>
+                      <div class="segmented" id="durationOptions">
+                        <button class="segment" data-duration="5">5 min</button>
+                        <button class="segment active" data-duration="15">15 min</button>
+                        <button class="segment" data-duration="30">30 min</button>
+                        <button class="segment" data-duration="60">60 min</button>
+                      </div>
+                    </div>
+                    <div class="control-row">
+                      <div class="control-title">Distance from sensitive area / 敏感な場所からの距離</div>
+                      <div class="segmented" id="distanceOptions">
+                        <button class="segment" data-distance="near">Near / 近い</button>
+                        <button class="segment active" data-distance="middle">Middle / 中間</button>
+                        <button class="segment" data-distance="far">Far / 遠い</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="choices" id="choices"></div>
+
+                  <div class="counter-offer hidden" id="counterOffer">
+                    <strong>Alternative proposal / 代替提案</strong>
+                    <div id="counterText">Stay 5 minutes and keep more distance? / 5分だけ滞在し、もっと距離を取りますか？</div>
+                    <div class="counter-actions">
+                      <button id="acceptCounter">Accept alternative / 提案を受け入れる</button>
+                      <button id="ignoreCounter">Ignore / 無視する</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="visual-column">
+                  <div class="impact-panel" aria-label="Real-world impact / 現実世界への影響">
+                    <h3>Real-world impact / 現実世界への影響</h3>
+                    <svg class="impact-chart" viewBox="0 0 520 210" role="img" aria-label="Before and after ecological pressure line chart">
+                      <line class="impact-grid" x1="54" y1="42" x2="486" y2="42"></line>
+                      <line class="impact-grid" x1="54" y1="94" x2="486" y2="94"></line>
+                      <line class="impact-grid" x1="54" y1="146" x2="486" y2="146"></line>
+                      <line class="impact-axis" x1="54" y1="166" x2="486" y2="166"></line>
+                      <line class="impact-axis" x1="54" y1="28" x2="54" y2="166"></line>
+                      <path class="impact-before" id="impactBeforeLine" d=""></path>
+                      <path class="impact-after" id="impactAfterLine" d=""></path>
+                      <g id="impactPoints"></g>
+                      <text class="impact-label" x="20" y="45">High / 高</text>
+                      <text class="impact-label" x="24" y="169">Low / 低</text>
+                      <text class="impact-label" id="impactLabelOne" x="74" y="195">14:00</text>
+                      <text class="impact-label" id="impactLabelTwo" x="220" y="195">16:00</text>
+                      <text class="impact-label" id="impactLabelThree" x="368" y="195">18:00</text>
+                    </svg>
+                    <div class="impact-summary" id="impactSummary">
+                      Lower pressure means more recovery time for plants, birds, soil, and water edges. / 圧力が低いほど、植物・鳥・土壌・水辺の回復時間が増えます。
+                    </div>
+                  </div>
+
+                  <div class="feedback" id="feedback">
+                    Selected / 選択: Stay for a shorter time / 短時間だけ滞在. The grassland keeps more recovery time this afternoon. / 草地は午後により多くの回復時間を得ます。
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">More-than-human interaction prototype / 人間以上の存在とのインタラクション原型</p>
+          <h1>Nature Negotiation Interface / 自然との交渉インターフェース</h1>
+          <p class="lead">
+            A simple interface for entering a campus natural space. It shows the current non-human condition,
+            asks the visitor to consider their impact, and turns staying into a small negotiation. /
+            キャンパスの自然空間に入るための簡単なインターフェースです。非人間の状態を示し、訪問者に自分の影響を考えさせ、滞在を小さな交渉に変えます。
+          </p>
+          <div class="space-switcher" aria-label="Choose a natural space">
+            <button class="active" data-space="grass">Grassland / 草地</button>
+            <button data-space="tree">Under Tree / 木陰</button>
+            <button data-space="water">Waterside / 水辺</button>
+          </div>
+        </div>
+
+        <section class="chart-card" aria-labelledby="time-chart-title">
+          <div class="chart-head">
+            <div>
+              <h2 id="time-chart-title">Shared Space Pressure Over Time / 共有空間の圧力変化</h2>
+              <p class="small">Representative natural spaces show different sensitive moments during the day. / 代表的な自然空間は、一日の中で異なる敏感な時間帯を持ちます。</p>
+            </div>
+            <span class="now-pill" id="nowPill">Now / 現在: 14:00</span>
+          </div>
+          <svg class="line-chart" viewBox="0 0 680 310" role="img" aria-label="Line chart showing ecological pressure over time">
+            <defs>
+              <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#2f7a55" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="#2f7a55" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <line class="grid-line" x1="56" y1="48" x2="640" y2="48" />
+            <line class="grid-line" x1="56" y1="116" x2="640" y2="116" />
+            <line class="grid-line" x1="56" y1="184" x2="640" y2="184" />
+            <line class="axis" x1="56" y1="248" x2="640" y2="248" />
+            <line class="axis" x1="56" y1="36" x2="56" y2="248" />
+            <path id="chartArea" class="chart-area" d="" fill="url(#areaGradient)"></path>
+            <g id="chartSeries"></g>
+            <g id="chartDots"></g>
+            <text class="chart-label" x="36" y="52">High / 高</text>
+            <text class="chart-label" x="28" y="252">Low / 低</text>
+            <g id="chartLabels"></g>
+          </svg>
+          <div class="chart-legend" aria-label="Representative natural spaces">
+            <span class="legend-item"><span class="legend-line" style="--series:#86a34f;"></span>Grassland / 草地</span>
+            <span class="legend-item"><span class="legend-line" style="--series:#2f7a55;"></span>Under Tree / 木陰</span>
+            <span class="legend-item"><span class="legend-line" style="--series:#4a8f9f;"></span>Waterside / 水辺</span>
+            <span class="legend-item"><span class="legend-line" style="--series:#7d8983;background:repeating-linear-gradient(90deg,#7d8983 0 8px,transparent 8px 13px);"></span>Before choice / 選択前</span>
+          </div>
+          <div class="chart-impact" id="chartImpact">
+            Choose an action below to change the selected space's pressure after 14:00. / 下の行動を選ぶと、14:00以降の選択空間の圧力が変化します。
+          </div>
+          <div class="timeline-note">
+            <div class="time-chip">
+              <strong>Morning: birds / insects / 朝：鳥・昆虫</strong>
+              <p class="small">Birds and insects are active before human traffic increases. / 人の往来が増える前に、鳥や昆虫が活発になります。</p>
+            </div>
+            <div class="time-chip">
+              <strong>Afternoon: grass / soil / 午後：草地・土壌</strong>
+              <p class="small">Human use and ecological sensitivity overlap. / 人の利用と生態的な敏感さが重なります。</p>
+            </div>
+            <div class="time-chip">
+              <strong>Evening: water edge / 夕方：水辺</strong>
+              <p class="small">The space begins recovering when visits decrease. / 訪問が減ると、空間は回復し始めます。</p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="compare-panel" style="margin-top: 32px;">
+        <div class="row-between">
+          <div>
+            <p class="eyebrow">Interaction value / インタラクションの価値</p>
+            <h2>Before vs After Entering / 入る前と入った後</h2>
+          </div>
+          <p class="small" style="max-width: 420px;">
+            This comparison explains why the interface matters: it changes a casual action into an informed choice. / この比較は、何気ない行動が情報に基づく選択へ変わることを示します。
+          </p>
+        </div>
+        <div class="compare-grid">
+          <article class="compare-card">
+            <div class="compare-image" style="--compare-bg: linear-gradient(180deg, rgba(58,78,54,.1), rgba(35,45,34,.28)), repeating-linear-gradient(110deg, #9fbd73 0 22px, #8eb063 22px 44px);">
+              <div class="person"></div>
+            </div>
+            <div class="compare-text">
+              <h3>Before: direct use / 以前：直接利用</h3>
+              <p class="small">The person sits on the grass without knowing whether the space is recovering or sensitive. / 空間が回復中か敏感かを知らないまま、草地に座ります。</p>
+            </div>
+          </article>
+          <article class="compare-card">
+            <div class="compare-image" style="--compare-bg: linear-gradient(180deg, rgba(58,78,54,.1), rgba(35,45,34,.28)), repeating-linear-gradient(110deg, #9fbd73 0 22px, #8eb063 22px 44px);">
+              <div class="person" style="left: 36%;"></div>
+              <div class="mini-phone"></div>
+            </div>
+            <div class="compare-text">
+              <h3>After: negotiated use / 以後：交渉された利用</h3>
+              <p class="small">The person sees non-human conditions, then chooses a lower-impact way to stay. / 非人間の状態を見た上で、より低影響な滞在方法を選びます。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const spaces = {
+        grass: {
+          title: "Entering Grassland / 草地",
+          name: "Grassland / 草地",
+          where: "Grassland / 草地 near Library",
+          sensitivity: "Sensitive",
+          scene:
+            "linear-gradient(180deg, rgba(30,45,31,.05), rgba(27,34,29,.64)), repeating-linear-gradient(110deg, #9fbd73 0 24px, #8eb063 24px 48px)",
+          info: [
+            ["Plant status", "Recovering", "R"],
+            ["Bird activity", "Medium", "M"],
+            ["Soil condition", "Sensitive", "S"],
+          ],
+          baseline: {
+            plant: 62,
+            bird: 48,
+            soil: 70,
+            recovery: 45,
+          },
+          chart: [34, 48, 57, 76, 68, 50],
+          choices: [
+            {
+              label: "Stay for a shorter time",
+              tag: "Recommended",
+              effect: { plant: 74, bird: 50, soil: 58, recovery: 68 },
+              feedback: "You shorten the visit, so the grass gets more uninterrupted recovery time.",
+              summary: "Real effect: plant recovery improves, soil pressure drops, and the space can recover sooner.",
+            },
+            {
+              label: "Reduce disturbance",
+              tag: "Low impact",
+              effect: { plant: 66, bird: 62, soil: 64, recovery: 56 },
+              feedback: "You stay quietly and avoid spreading out, so nearby birds and plants experience less disturbance.",
+              summary: "Real effect: bird disturbance is reduced, while the soil still carries some pressure from staying.",
+            },
+            {
+              label: "Move to another area",
+              tag: "Protective",
+              effect: { plant: 82, bird: 70, soil: 42, recovery: 82 },
+              feedback: "You leave the sensitive grassland and use a sturdier area instead.",
+              summary: "Real effect: the current space gets the strongest recovery benefit.",
+            },
+            {
+              label: "Stay anyway",
+              tag: "High impact",
+              effect: { plant: 38, bird: 32, soil: 84, recovery: 24 },
+              feedback: "You continue using the grassland during a sensitive moment.",
+              summary: "Real effect: soil pressure rises and recovery time becomes longer.",
+            },
+          ],
+        },
+        tree: {
+          title: "Entering Under Tree / 木陰",
+          name: "Under Tree / 木陰",
+          where: "Tree shade beside pathway",
+          sensitivity: "Active",
+          scene:
+            "linear-gradient(180deg, rgba(28,43,30,.08), rgba(20,31,25,.68)), radial-gradient(circle at 50% 20%, #446d45 0 32%, #2d5738 33% 54%, #735a36 55% 59%, #8aa55d 60% 100%)",
+          info: [
+            ["Plant status", "Stable", "S"],
+            ["Bird activity", "High", "H"],
+            ["Soil condition", "Protected roots", "P"],
+          ],
+          baseline: {
+            plant: 72,
+            bird: 78,
+            soil: 54,
+            recovery: 58,
+          },
+          chart: [52, 70, 66, 58, 62, 46],
+          choices: [
+            {
+              label: "Reduce disturbance",
+              tag: "Recommended",
+              effect: { plant: 74, bird: 84, soil: 50, recovery: 66 },
+              feedback: "You lower noise and movement, so birds can continue feeding around the canopy.",
+              summary: "Real effect: bird activity stays stable while root-zone pressure remains controlled.",
+            },
+            {
+              label: "Stay for a shorter time",
+              tag: "Low impact",
+              effect: { plant: 76, bird: 72, soil: 46, recovery: 72 },
+              feedback: "You keep the visit brief and reduce pressure around the tree roots.",
+              summary: "Real effect: the root area gets more recovery time after you leave.",
+            },
+            {
+              label: "Move to another area",
+              tag: "Protective",
+              effect: { plant: 82, bird: 86, soil: 34, recovery: 84 },
+              feedback: "You move away from the active bird area.",
+              summary: "Real effect: the tree space remains available for non-human activity.",
+            },
+            {
+              label: "Stay anyway",
+              tag: "High impact",
+              effect: { plant: 58, bird: 40, soil: 68, recovery: 38 },
+              feedback: "You stay during high bird activity, increasing disturbance around the tree.",
+              summary: "Real effect: bird activity is interrupted and root-zone pressure increases.",
+            },
+          ],
+        },
+        water: {
+          title: "Entering Waterside / 水辺",
+          name: "Waterside / 水辺",
+          where: "Pond edge",
+          sensitivity: "High sensitivity",
+          scene:
+            "linear-gradient(180deg, rgba(20,45,54,.06), rgba(18,31,38,.68)), linear-gradient(160deg, #79a45e 0 35%, #568f9c 36% 63%, #356a78 64% 100%)",
+          info: [
+            ["Plant status", "Fragile edge", "F"],
+            ["Bird activity", "High", "H"],
+            ["Soil condition", "Wet and soft", "W"],
+          ],
+          baseline: {
+            plant: 48,
+            bird: 74,
+            soil: 82,
+            recovery: 36,
+          },
+          chart: [44, 60, 72, 82, 74, 62],
+          choices: [
+            {
+              label: "Move to another area",
+              tag: "Recommended",
+              effect: { plant: 74, bird: 84, soil: 44, recovery: 86 },
+              feedback: "You leave the pond edge and prevent disturbance to the wet boundary.",
+              summary: "Real effect: the fragile edge is protected and birds keep using the waterside.",
+            },
+            {
+              label: "Reduce disturbance",
+              tag: "Low impact",
+              effect: { plant: 60, bird: 70, soil: 66, recovery: 58 },
+              feedback: "You stay back from the water and keep movement small.",
+              summary: "Real effect: disturbance is reduced, but the wet soil still remains vulnerable.",
+            },
+            {
+              label: "Stay for a shorter time",
+              tag: "Limited",
+              effect: { plant: 56, bird: 62, soil: 70, recovery: 50 },
+              feedback: "You shorten the visit, but the pond edge is still sensitive to proximity.",
+              summary: "Real effect: impact is reduced only partly because the boundary is fragile.",
+            },
+            {
+              label: "Stay anyway",
+              tag: "High impact",
+              effect: { plant: 34, bird: 36, soil: 90, recovery: 18 },
+              feedback: "You remain at the pond edge during a highly sensitive period.",
+              summary: "Real effect: wet soil pressure rises and bird activity is likely displaced.",
+            },
+          ],
+        },
+      };
+
+      const chartX = [70, 180, 290, 400, 510, 620];
+      const labels = ["8:00", "10:00", "12:00", "14:00", "16:00", "18:00"];
+      const translations = {
+        "Entering Grassland / 草地": "Entering Grassland / 草地に入る",
+        "Grassland / 草地 near Library": "Grassland near Library / 図書館近くの草地",
+        "Sensitive": "Sensitive / 敏感",
+        "Plant status": "Plant status / 植物の状態",
+        "Recovering": "Recovering / 回復中",
+        "Bird activity": "Bird activity / 鳥の活動",
+        "Medium": "Medium / 中",
+        "Soil condition": "Soil condition / 土壌の状態",
+        "Stay for a shorter time": "Stay for a shorter time / 短時間だけ滞在",
+        "Reduce disturbance": "Reduce disturbance / 干渉を減らす",
+        "Move to another area": "Move to another area / 別の場所へ移動",
+        "Stay anyway": "Stay anyway / それでも滞在",
+        "Recommended": "Recommended / 推奨",
+        "Low impact": "Low impact / 低影響",
+        "Protective": "Protective / 保護的",
+        "High impact": "High impact / 高影響",
+        "Limited": "Limited / 限定的",
+        "Entering Under Tree / 木陰": "Entering Under Tree / 木陰に入る",
+        "Tree shade beside pathway": "Tree shade beside pathway / 通路沿いの木陰",
+        "Active": "Active / 活発",
+        "Stable": "Stable / 安定",
+        "High": "High / 高",
+        "Protected roots": "Protected roots / 根の保護エリア",
+        "Entering Waterside / 水辺": "Entering Waterside / 水辺に入る",
+        "Pond edge": "Pond edge / 池の縁",
+        "High sensitivity": "High sensitivity / 高い敏感度",
+        "Fragile edge": "Fragile edge / 壊れやすい縁",
+        "Wet and soft": "Wet and soft / 湿って柔らかい",
+      };
+      const messageTranslations = {
+        "You shorten the visit, so the grass gets more uninterrupted recovery time.": "滞在時間を短くすることで、草地は妨げられずに回復する時間を得ます。",
+        "Real effect: plant recovery improves, soil pressure drops, and the space can recover sooner.": "現実の影響：植物の回復が進み、土壌への圧力が下がり、空間が早く回復できます。",
+        "You stay quietly and avoid spreading out, so nearby birds and plants experience less disturbance.": "静かに過ごし広がらないことで、近くの鳥や植物への干渉が減ります。",
+        "Real effect: bird disturbance is reduced, while the soil still carries some pressure from staying.": "現実の影響：鳥への干渉は減りますが、滞在による土壌への圧力は少し残ります。",
+        "You leave the sensitive grassland and use a sturdier area instead.": "敏感な草地を離れ、より強い場所を利用します。",
+        "Real effect: the current space gets the strongest recovery benefit.": "現実の影響：現在の空間に最も大きな回復効果があります。",
+        "You continue using the grassland during a sensitive moment.": "敏感な時間帯に草地の利用を続けます。",
+        "Real effect: soil pressure rises and recovery time becomes longer.": "現実の影響：土壌への圧力が上がり、回復時間が長くなります。",
+        "You lower noise and movement, so birds can continue feeding around the canopy.": "音や動きを抑えることで、鳥は樹冠の周りで採餌を続けられます。",
+        "Real effect: bird activity stays stable while root-zone pressure remains controlled.": "現実の影響：鳥の活動は安定し、根元への圧力も抑えられます。",
+        "You keep the visit brief and reduce pressure around the tree roots.": "滞在を短くすることで、木の根元への圧力を減らします。",
+        "Real effect: the root area gets more recovery time after you leave.": "現実の影響：あなたが離れた後、根元の回復時間が増えます。",
+        "You move away from the active bird area.": "鳥が活発に使っている場所から離れます。",
+        "Real effect: the tree space remains available for non-human activity.": "現実の影響：木陰の空間が非人間の活動に使われ続けます。",
+        "You stay during high bird activity, increasing disturbance around the tree.": "鳥の活動が高い時間に滞在し、木の周りの干渉を増やします。",
+        "Real effect: bird activity is interrupted and root-zone pressure increases.": "現実の影響：鳥の活動が中断され、根元への圧力が上がります。",
+        "You leave the pond edge and prevent disturbance to the wet boundary.": "池の縁を離れ、湿った境界への干渉を防ぎます。",
+        "Real effect: the fragile edge is protected and birds keep using the waterside.": "現実の影響：壊れやすい縁が守られ、鳥は水辺を使い続けられます。",
+        "You stay back from the water and keep movement small.": "水辺から距離を取り、動きを小さくします。",
+        "Real effect: disturbance is reduced, but the wet soil still remains vulnerable.": "現実の影響：干渉は減りますが、湿った土壌はまだ弱い状態です。",
+        "You shorten the visit, but the pond edge is still sensitive to proximity.": "滞在を短くしても、池の縁は近づくこと自体に敏感です。",
+        "Real effect: impact is reduced only partly because the boundary is fragile.": "現実の影響：境界が壊れやすいため、影響は一部だけ減ります。",
+        "You remain at the pond edge during a highly sensitive period.": "非常に敏感な時間帯に池の縁に留まります。",
+        "Real effect: wet soil pressure rises and bird activity is likely displaced.": "現実の影響：湿った土壌への圧力が上がり、鳥の活動が移動する可能性があります。",
+      };
+      function t(text) {
+        return translations[text] || text;
+      }
+      function tm(text) {
+        return `${text} / ${messageTranslations[text] || text}`;
+      }
+      const chartColors = {
+        grass: "#86a34f",
+        tree: "#2f7a55",
+        water: "#4a8f9f",
+      };
+      const durationSettings = {
+        5: { plant: 6, bird: 4, soil: -7, recovery: 12 },
+        15: { plant: 0, bird: 0, soil: 0, recovery: 0 },
+        30: { plant: -8, bird: -6, soil: 12, recovery: -14 },
+        60: { plant: -18, bird: -14, soil: 26, recovery: -30 },
+      };
+      const distanceSettings = {
+        near: { plant: -10, bird: -14, soil: 16, recovery: -18 },
+        middle: { plant: 0, bird: 0, soil: 0, recovery: 0 },
+        far: { plant: 10, bird: 12, soil: -14, recovery: 18 },
+      };
+      let activeSpace = "grass";
+      let activeTimeIndex = 3;
+      let activeDuration = 15;
+      let activeDistance = "middle";
+      let activeChoiceLabel = "";
+
+      const buttons = document.querySelectorAll(".space-switcher button");
+      const timeSlider = document.getElementById("timeSlider");
+      const timeValue = document.getElementById("timeValue");
+      const durationOptions = document.getElementById("durationOptions");
+      const distanceOptions = document.getElementById("distanceOptions");
+      const infoGrid = document.getElementById("infoGrid");
+      const choices = document.getElementById("choices");
+      const feedback = document.getElementById("feedback");
+      const counterOffer = document.getElementById("counterOffer");
+      const counterText = document.getElementById("counterText");
+      const acceptCounter = document.getElementById("acceptCounter");
+      const ignoreCounter = document.getElementById("ignoreCounter");
+      const impactSummary = document.getElementById("impactSummary");
+      const impactBeforeLine = document.getElementById("impactBeforeLine");
+      const impactAfterLine = document.getElementById("impactAfterLine");
+      const impactPoints = document.getElementById("impactPoints");
+      const impactLabelOne = document.getElementById("impactLabelOne");
+      const impactLabelTwo = document.getElementById("impactLabelTwo");
+      const impactLabelThree = document.getElementById("impactLabelThree");
+      const scene = document.getElementById("scene");
+      const spaceTitle = document.getElementById("spaceTitle");
+      const spaceName = document.getElementById("spaceName");
+      const spaceSensitivity = document.getElementById("spaceSensitivity");
+      const decisionWhere = document.getElementById("decisionWhere");
+      const decisionChoice = document.getElementById("decisionChoice");
+      const chartSeries = document.getElementById("chartSeries");
+      const chartArea = document.getElementById("chartArea");
+      const chartDots = document.getElementById("chartDots");
+      const chartLabels = document.getElementById("chartLabels");
+      const chartImpact = document.getElementById("chartImpact");
+      const weatherTemp = document.getElementById("weatherTemp");
+      const weatherHumidity = document.getElementById("weatherHumidity");
+      const weatherSource = document.getElementById("weatherSource");
+      const weatherPrompt = document.getElementById("weatherPrompt");
+      const defaultWeatherLocation = {
+        latitude: 35.7138,
+        longitude: 139.7626,
+        label: "Tokyo fallback / 東京の代替地点",
+      };
+      let weatherState = {
+        loaded: false,
+        temperature: null,
+        humidity: null,
+        label: "",
+      };
+
+      function yFromValue(value) {
+        return 248 - value * 2.12;
+      }
+
+      function renderChart(values, animate = false) {
+        const points = values.map((value, index) => [chartX[index], yFromValue(value)]);
+        const line = points.map((point, index) => `${index === 0 ? "M" : "L"} ${point[0]} ${point[1]}`).join(" ");
+        chartArea.setAttribute("d", `${line} L 620 248 L 70 248 Z`);
+        chartArea.classList.toggle("animating", animate);
+
+        chartSeries.innerHTML = Object.entries(spaces)
+          .sort(([a], [b]) => {
+            if (a === activeSpace) return 1;
+            if (b === activeSpace) return -1;
+            return 0;
+          })
+          .map(([key, space]) => {
+            const seriesValues = key === activeSpace ? values : weatherAdjustedChart(key);
+            const seriesPoints = seriesValues.map((value, index) => [chartX[index], yFromValue(value)]);
+            const seriesLine = seriesPoints
+              .map((point, index) => `${index === 0 ? "M" : "L"} ${point[0]} ${point[1]}`)
+              .join(" ");
+            const baseChart = weatherAdjustedChart(key);
+            const basePoints = baseChart.map((value, index) => [chartX[index], yFromValue(value)]);
+            const baseLine = basePoints
+              .map((point, index) => `${index === 0 ? "M" : "L"} ${point[0]} ${point[1]}`)
+              .join(" ");
+            const selected = key === activeSpace ? "selected" : "";
+            const animating = key === activeSpace && animate ? "animating" : "";
+            const baseline = key === activeSpace ? `<path class="chart-baseline" d="${baseLine}"></path>` : "";
+            return `${baseline}<path class="chart-line ${selected} ${animating}" d="${seriesLine}" style="--series:${chartColors[key]};"></path>`;
+          })
+          .join("");
+
+        chartDots.innerHTML = points
+          .map((point, index) => {
+            const active = index === activeTimeIndex ? "active-dot" : "";
+            const changed = animate && index >= activeTimeIndex ? "changed-dot" : "";
+            return `<circle class="chart-dot ${active} ${changed}" cx="${point[0]}" cy="${point[1]}" r="${index === activeTimeIndex ? 8 : 6}" style="--series:${chartColors[activeSpace]};"></circle>`;
+          })
+          .join("");
+
+        chartLabels.innerHTML = labels
+          .map((label, index) => `<text class="chart-label" x="${chartX[index] - 16}" y="280">${label}</text>`)
+          .join("");
+      }
+
+      function renderImpact(effect, summary, choiceLabel, animate = false) {
+        const space = spaces[activeSpace];
+        const baseChart = weatherAdjustedChart(activeSpace);
+        const beforeValues = impactWindow(baseChart);
+        const afterValues = impactWindow(chartAfterChoice(baseChart, effect));
+        const impactLabels = impactWindow(labels);
+
+        impactBeforeLine.setAttribute("d", impactLinePath(beforeValues));
+        impactAfterLine.setAttribute("d", impactLinePath(afterValues));
+        impactAfterLine.style.setProperty("--series", chartColors[activeSpace]);
+        impactAfterLine.classList.toggle("animating", animate);
+        impactPoints.innerHTML = afterValues
+          .map((value, index) => {
+            const [x, y] = impactPoint(value, index);
+            const changed = animate ? "changed-dot" : "";
+            return `<circle class="impact-point ${changed}" cx="${x}" cy="${y}" r="7" style="--series:${chartColors[activeSpace]};"></circle>`;
+          })
+          .join("");
+
+        impactLabelOne.textContent = impactLabels[0];
+        impactLabelTwo.textContent = impactLabels[1];
+        impactLabelThree.textContent = impactLabels[2];
+        impactSummary.textContent = beforeAfterSentence(space, effect, choiceLabel, summary);
+        chartImpact.textContent = chartChangeText(space, effect, choiceLabel);
+      }
+
+      function impactWindow(values) {
+        return [0, 1, 2].map((offset) => values[Math.min(values.length - 1, activeTimeIndex + offset)]);
+      }
+
+      function impactPoint(value, index) {
+        const xPositions = [92, 260, 428];
+        const y = 166 - value * 1.35;
+        return [xPositions[index], Math.max(32, Math.min(166, y))];
+      }
+
+      function impactLinePath(values) {
+        return values
+          .map((value, index) => {
+            const [x, y] = impactPoint(value, index);
+            return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+          })
+          .join(" ");
+      }
+
+      function chartAfterChoice(baseValues, effect) {
+        const pressureShift = Math.round((68 - effect.recovery + (effect.soil - 54) * 0.8) / 2.6);
+        return baseValues.map((value, index) => {
+          if (index < activeTimeIndex) return value;
+          const fade = Math.max(0.45, 1 - (index - activeTimeIndex) * 0.18);
+          return Math.max(18, Math.min(92, value + Math.round(pressureShift * fade)));
+        });
+      }
+
+      function chartChangeText(space, effect, choiceLabel) {
+        const baseChart = weatherAdjustedChart(activeSpace);
+        const changed = chartAfterChoice(baseChart, effect);
+        const beforeWindow = impactWindow(baseChart);
+        const afterWindow = impactWindow(changed);
+        const before = beforeWindow.reduce((total, value) => total + value, 0);
+        const after = afterWindow.reduce((total, value) => total + value, 0);
+        const delta = Math.round((after - before) / 3);
+        const weatherNote = weatherInfluenceText().chart;
+        if (delta > 0) {
+          return `${t(choiceLabel)}: pressure rises by about ${delta} points after ${labels[activeTimeIndex]}. ${weatherNote} / ${labels[activeTimeIndex]}以降、圧力が約${delta}ポイント上がります。彩色の線が灰色の選択前ラインより上に動きます。`;
+        }
+        if (delta < 0) {
+          return `${t(choiceLabel)}: pressure drops by about ${Math.abs(delta)} points after ${labels[activeTimeIndex]}. ${weatherNote} / ${labels[activeTimeIndex]}以降、圧力が約${Math.abs(delta)}ポイント下がります。彩色の線が灰色の選択前ラインより下に動きます。`;
+        }
+        return `${t(choiceLabel)}: pressure stays close to the before-choice line after ${labels[activeTimeIndex]}. ${weatherNote} / ${labels[activeTimeIndex]}以降、圧力は選択前ラインに近いままです。`;
+      }
+
+      function beforeAfterSentence(space, effect, choiceLabel, summary) {
+        const baseChart = weatherAdjustedChart(activeSpace);
+        const before = baseChart[activeTimeIndex];
+        const after = chartAfterChoice(baseChart, effect)[activeTimeIndex];
+        const direction = after > before ? "increases" : after < before ? "reduces" : "keeps";
+        const directionJa = after > before ? "上げます" : after < before ? "下げます" : "ほぼ維持します";
+        return `${t(choiceLabel)} ${direction} pressure from ${before} to ${after} at ${labels[activeTimeIndex]}. / ${labels[activeTimeIndex]}に圧力を${before}から${after}へ${directionJa}。 ${tm(summary)}`;
+      }
+
+      function adjustedEffect(choice) {
+        const duration = durationSettings[activeDuration];
+        const distance = distanceSettings[activeDistance];
+        const weather = weatherEffectModifier(activeSpace);
+        return {
+          plant: clamp(choice.effect.plant + duration.plant + distance.plant + weather.plant),
+          bird: clamp(choice.effect.bird + duration.bird + distance.bird + weather.bird),
+          soil: clamp(choice.effect.soil + duration.soil + distance.soil + weather.soil),
+          recovery: clamp(choice.effect.recovery + duration.recovery + distance.recovery + weather.recovery),
+        };
+      }
+
+      function clamp(value) {
+        return Math.max(10, Math.min(95, value));
+      }
+
+      function selectedChoice() {
+        const space = spaces[activeSpace];
+        return space.choices.find((choice) => choice.label === activeChoiceLabel) || space.choices[0];
+      }
+
+      function weatherPressureDelta(spaceKey) {
+        if (!weatherState.loaded) return 0;
+        const temp = weatherState.temperature;
+        const humidity = weatherState.humidity;
+        let delta = 0;
+
+        if (temp >= 32) delta += 10;
+        else if (temp >= 28) delta += 6;
+        else if (temp <= 5) delta += 4;
+
+        if (humidity >= 85) delta += spaceKey === "water" ? 8 : 5;
+        else if (humidity >= 75) delta += spaceKey === "water" ? 5 : 3;
+        else if (humidity <= 35) delta += spaceKey === "grass" || spaceKey === "tree" ? 6 : 3;
+
+        return delta;
+      }
+
+      function weatherEffectModifier(spaceKey) {
+        if (!weatherState.loaded) {
+          return { plant: 0, bird: 0, soil: 0, recovery: 0 };
+        }
+        const temp = weatherState.temperature;
+        const humidity = weatherState.humidity;
+        const modifier = { plant: 0, bird: 0, soil: 0, recovery: 0 };
+
+        if (temp >= 32) {
+          modifier.plant -= spaceKey === "water" ? 4 : 10;
+          modifier.bird -= 5;
+          modifier.recovery -= 12;
+        } else if (temp >= 28) {
+          modifier.plant -= spaceKey === "water" ? 2 : 6;
+          modifier.bird -= 3;
+          modifier.recovery -= 7;
+        }
+
+        if (humidity >= 80) {
+          modifier.soil += spaceKey === "water" ? 14 : 8;
+          modifier.recovery -= spaceKey === "water" ? 10 : 5;
+        } else if (humidity <= 35) {
+          modifier.plant -= spaceKey === "grass" || spaceKey === "tree" ? 8 : 3;
+          modifier.recovery -= 6;
+        }
+
+        return modifier;
+      }
+
+      function weatherAdjustedChart(spaceKey) {
+        const delta = weatherPressureDelta(spaceKey);
+        return spaces[spaceKey].chart.map((value, index) => {
+          if (!weatherState.loaded || index < activeTimeIndex) return value;
+          const fade = Math.max(0.42, 1 - (index - activeTimeIndex) * 0.16);
+          return Math.max(18, Math.min(92, value + Math.round(delta * fade)));
+        });
+      }
+
+      function weatherInfluenceText() {
+        if (!weatherState.loaded) {
+          return {
+            prompt:
+              "This is a shared space. Please consider your impact. / ここは共有された空間です。あなたの影響を考えてください。",
+            chart: "Weather is still loading.",
+            sensitivity: t(spaces[activeSpace].sensitivity),
+          };
+        }
+
+        const temp = Math.round(weatherState.temperature);
+        const humidity = Math.round(weatherState.humidity);
+        const delta = weatherPressureDelta(activeSpace);
+        const level = delta >= 10 ? "Very sensitive / 非常に敏感" : delta >= 5 ? "Weather-sensitive / 天候で敏感" : t(spaces[activeSpace].sensitivity);
+        const reason =
+          delta >= 10
+            ? "Heat or humidity is making this space more fragile right now."
+            : delta >= 5
+              ? "Current weather slightly raises ecological pressure."
+              : "Current weather adds little extra pressure.";
+        const reasonJa =
+          delta >= 10
+            ? "暑さまたは湿度により、この空間はいま特に壊れやすくなっています。"
+            : delta >= 5
+              ? "現在の天候により、生態的な圧力が少し高まっています。"
+              : "現在の天候による追加の圧力は小さいです。";
+
+        return {
+          prompt: `${reason} Live weather: ${temp}°C, ${humidity}% humidity. / ${reasonJa} 現在の天気：${temp}°C、湿度${humidity}%。`,
+          chart: `Live weather is included: ${temp}°C and ${humidity}% humidity.`,
+          sensitivity: level,
+        };
+      }
+
+      function updateNegotiation(animate = true) {
+        const choice = selectedChoice();
+        const effect = adjustedEffect(choice);
+        const weatherText = weatherInfluenceText();
+        decisionChoice.textContent = t(choice.label);
+        feedback.textContent = `Selected / 選択: ${t(choice.label)}. ${tm(choice.feedback)}`;
+        weatherPrompt.textContent = weatherText.prompt;
+        spaceSensitivity.textContent = weatherText.sensitivity;
+        renderImpact(effect, choice.summary, choice.label, animate);
+        renderChart(chartAfterChoice(weatherAdjustedChart(activeSpace), effect), animate);
+        renderCounterOffer(choice, effect);
+      }
+
+      function renderCounterOffer(choice, effect) {
+        const baseChart = weatherAdjustedChart(activeSpace);
+        const changed = chartAfterChoice(baseChart, effect);
+        const pressureRise = changed[activeTimeIndex] - baseChart[activeTimeIndex];
+        if (choice.tag.includes("High impact") || pressureRise > 8) {
+          counterText.textContent = `Alternative: stay 5 minutes and keep far distance from the sensitive area? / 代替案：5分だけ滞在し、敏感な場所から遠く離れますか？`;
+          counterOffer.classList.remove("hidden");
+        } else {
+          counterOffer.classList.add("hidden");
+        }
+      }
+
+      function updateControlStates() {
+        timeSlider.value = activeTimeIndex;
+        timeValue.textContent = labels[activeTimeIndex];
+        document.getElementById("nowPill").textContent = `Now / 現在: ${labels[activeTimeIndex]}`;
+        document.querySelector(".status-bar span").textContent = labels[activeTimeIndex];
+        durationOptions.querySelectorAll(".segment").forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.duration) === activeDuration);
+        });
+        distanceOptions.querySelectorAll(".segment").forEach((button) => {
+          button.classList.toggle("active", button.dataset.distance === activeDistance);
+        });
+      }
+
+      function renderSpace(spaceKey) {
+        activeSpace = spaceKey;
+        const space = spaces[spaceKey];
+
+        buttons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.space === spaceKey);
+        });
+
+        scene.style.setProperty("--scene", space.scene);
+        spaceTitle.textContent = t(space.title);
+        spaceName.textContent = t(space.name);
+        spaceSensitivity.textContent = t(space.sensitivity);
+        decisionWhere.textContent = t(space.where);
+        activeChoiceLabel = space.choices[0].label;
+        updateControlStates();
+        decisionChoice.textContent = t(activeChoiceLabel);
+        feedback.textContent = `Selected / 選択: ${t(space.choices[0].label)}. ${tm(space.choices[0].feedback)}`;
+
+        infoGrid.innerHTML = space.info
+          .map(
+            ([label, value, signal]) => `
+              <div class="info-card">
+                <div>
+                  <span>${t(label)}</span>
+                  <strong>${t(value)}</strong>
+                </div>
+                <div class="signal">${signal}</div>
+              </div>
+            `
+          )
+          .join("");
+
+        choices.innerHTML = space.choices
+          .map(
+            (choice, index) => `
+              <button class="choice ${index === 0 ? "selected" : ""} ${choice.tag.includes("High impact") ? "high-impact" : ""}" data-choice="${choice.label}">
+                <span>${t(choice.label)}</span>
+                <small>${t(choice.tag)}</small>
+              </button>
+            `
+          )
+          .join("");
+
+        choices.querySelectorAll(".choice").forEach((button) => {
+          button.addEventListener("click", () => {
+            choices.querySelectorAll(".choice").forEach((item) => item.classList.remove("selected"));
+            button.classList.add("selected");
+            const selected = space.choices.find((choice) => choice.label === button.dataset.choice);
+            activeChoiceLabel = selected.label;
+            updateNegotiation(true);
+          });
+        });
+
+        updateNegotiation(false);
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => renderSpace(button.dataset.space));
+      });
+
+      timeSlider.addEventListener("input", () => {
+        activeTimeIndex = Number(timeSlider.value);
+        updateControlStates();
+        updateNegotiation(true);
+      });
+
+      durationOptions.querySelectorAll(".segment").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeDuration = Number(button.dataset.duration);
+          updateControlStates();
+          updateNegotiation(true);
+        });
+      });
+
+      distanceOptions.querySelectorAll(".segment").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeDistance = button.dataset.distance;
+          updateControlStates();
+          updateNegotiation(true);
+        });
+      });
+
+      acceptCounter.addEventListener("click", () => {
+        activeDuration = 5;
+        activeDistance = "far";
+        const betterChoice =
+          spaces[activeSpace].choices.find((choice) => choice.tag.includes("Recommended")) || spaces[activeSpace].choices[0];
+        activeChoiceLabel = betterChoice.label;
+        choices.querySelectorAll(".choice").forEach((button) => {
+          button.classList.toggle("selected", button.dataset.choice === activeChoiceLabel);
+        });
+        updateControlStates();
+        updateNegotiation(true);
+      });
+
+      ignoreCounter.addEventListener("click", () => {
+        counterOffer.classList.add("hidden");
+      });
+
+      function setWeatherLoading(message) {
+        weatherTemp.textContent = "--";
+        weatherHumidity.textContent = "--";
+        weatherSource.textContent = message;
+      }
+
+      function updateWeatherDisplay(current, label) {
+        const temperature = current.temperature_2m;
+        const humidity = current.relative_humidity_2m;
+        weatherState = {
+          loaded: Number.isFinite(temperature) && Number.isFinite(humidity),
+          temperature,
+          humidity,
+          label,
+        };
+        weatherTemp.textContent = Number.isFinite(temperature) ? `${Math.round(temperature)}°C` : "--";
+        weatherHumidity.textContent = Number.isFinite(humidity) ? `${Math.round(humidity)}%` : "--";
+        weatherSource.textContent = `${label} · ${current.time ? current.time.replace("T", " ") : "Live"} · Open-Meteo`;
+        updateNegotiation(true);
+      }
+
+      async function fetchWeather(location) {
+        const params = new URLSearchParams({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          current: "temperature_2m,relative_humidity_2m",
+          timezone: "auto",
+        });
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error("Weather request failed");
+        }
+        const data = await response.json();
+        updateWeatherDisplay(data.current || {}, location.label);
+      }
+
+      function loadLiveWeather() {
+        setWeatherLoading("Loading live data / 取得中");
+
+        const useDefaultLocation = () => {
+          fetchWeather(defaultWeatherLocation).catch(() => {
+            weatherSource.textContent = "Weather unavailable / 天気データを取得できません";
+          });
+        };
+
+        if (!navigator.geolocation) {
+          useDefaultLocation();
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            fetchWeather({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              label: "Current location / 現在地",
+            }).catch(useDefaultLocation);
+          },
+          useDefaultLocation,
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
+        );
+      }
+
+      renderSpace(activeSpace);
+      loadLiveWeather();
+      setInterval(loadLiveWeather, 10 * 60 * 1000);
+    </script>
+  </body>
+</html>
